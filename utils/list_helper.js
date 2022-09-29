@@ -19,7 +19,9 @@ const mostBlogs = (blogs) => {
     const exists = authors.find(({ author }) => author === blog.author);
     if (!exists) {
       authors.push({ author: blog.author, blogs: 1 });
-    } else { exists.blogs += 1; }
+    } else {
+      exists.blogs += 1;
+    }
     return authors;
   };
 
@@ -27,9 +29,25 @@ const mostBlogs = (blogs) => {
   return authors.sort((a, b) => b.blogs - a.blogs)[0];
 };
 
+const mostLikes = (blogs) => {
+  const authorsReducer = (authors, blog) => {
+    const exists = authors.find(({ author }) => author === blog.author);
+    if (!exists) {
+      authors.push({ author: blog.author, likes: blog.likes });
+    } else {
+      exists.likes += blog.likes;
+    }
+    return authors;
+  };
+
+  const authors = blogs.reduce(authorsReducer, []);
+  return authors.sort((a, b) => b.likes - a.likes)[0];
+};
+
 module.exports = {
   dummy,
   totalLikes,
   favoriteBlog,
   mostBlogs,
+  mostLikes,
 };
