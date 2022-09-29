@@ -14,8 +14,22 @@ const favoriteBlog = (blogs) => {
   return blogs.reduce(reducer);
 };
 
+const mostBlogs = (blogs) => {
+  const authorsReducer = (authors, blog) => {
+    const exists = authors.find(({ author }) => author === blog.author);
+    if (!exists) {
+      authors.push({ author: blog.author, blogs: 1 });
+    } else { exists.blogs += 1; }
+    return authors;
+  };
+
+  const authors = blogs.reduce(authorsReducer, []);
+  return authors.sort((a, b) => b.blogs - a.blogs)[0];
+};
+
 module.exports = {
   dummy,
   totalLikes,
   favoriteBlog,
+  mostBlogs,
 };
