@@ -7,7 +7,21 @@ const Blog = require('../models/blog');
 
 const api = supertest(app);
 
-describe('Blogs', () => {
+beforeEach(async () => {
+  await Blog.deleteMany({});
+
+  const promises = [];
+
+  // eslint-disable-next-line no-restricted-syntax
+  for (const blog of dummyBlogs) {
+    // eslint-disable-next-line no-await-in-loop
+    promises.push(await new Blog(blog).save());
+  }
+
+  await Promise.all(promises);
+});
+
+describe('using offline dummy data', () => {
   test('dummy returns one', () => {
     const blogs = [];
 
@@ -34,7 +48,9 @@ describe('Blogs', () => {
     const result = listHelper.mostLikes(dummyBlogs);
     expect(result).toStrictEqual({ author: 'Edsger W. Dijkstra', likes: 17 });
   });
+});
 
+describe('using remote database', () => {
   test('correct amount of blogs', async () => {
     await api
       .get('/api/blogs')
@@ -125,22 +141,22 @@ describe('Blogs', () => {
       .send(noUrl)
       .expect(400);
   });
+});
 
-  beforeEach(async () => {
-    await Blog.deleteMany({});
+describe('deletion of a blog post', () => {
+  test('delete one', async () => {
+    const { id } = await Blog.findOne();
 
-    const promises = [];
+    await api
+      .delete(`/api/blogs/${id}`)
+      .expect(200);
 
-    // eslint-disable-next-line no-restricted-syntax
-    for (const blog of dummyBlogs) {
-      // eslint-disable-next-line no-await-in-loop
-      promises.push(await new Blog(blog).save());
-    }
-
-    await Promise.all(promises);
+    await api
+      .delete(`/api/blogs/${id}`)
+      .expect(404);
   });
+});
 
-  afterAll(() => {
-    mongoose.connection.close();
-  });
+afterAll(() => {
+  mongoose.connection.close();
 });
