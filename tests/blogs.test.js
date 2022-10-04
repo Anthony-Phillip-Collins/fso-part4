@@ -21,7 +21,7 @@ beforeEach(async () => {
   await Promise.all(promises);
 });
 
-describe('using offline dummy data', () => {
+describe('using local dummy blogs', () => {
   test('dummy returns one', () => {
     const blogs = [];
 
@@ -50,8 +50,8 @@ describe('using offline dummy data', () => {
   });
 });
 
-describe('using remote database', () => {
-  test('correct amount of blogs', async () => {
+describe('reading blog posts', () => {
+  test('amount of initial remote blogs equals amount of local dummy blogs', async () => {
     await api
       .get('/api/blogs')
       .expect('Content-Type', /json/)
@@ -61,12 +61,37 @@ describe('using remote database', () => {
     expect(blogs.length).toStrictEqual(dummyBlogs.length);
   });
 
-  test('blog has id', async () => {
+  test('blog has the property id', async () => {
     const blog = await Blog.findOne();
     expect(blog.id).toBeDefined();
   });
+});
 
-  test('create blog post', async () => {
+describe('viewing a specific blog post', () => {
+  test('succeeds with a valid id', async () => {
+    const blog = await Blog.findOne();
+
+    const result = await api
+      .get(`/api/blogs/${blog.id}`)
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    const processed = JSON.parse(JSON.stringify(blog));
+
+    expect(result.body).toEqual(processed);
+  });
+
+  test('fails with statuscode 400 if id is invalid', async () => {
+    const invalidId = '5a3d5da59070081a82a3445';
+
+    await api
+      .get(`/api/blogs/${invalidId}`)
+      .expect(400);
+  });
+});
+
+describe('creating a blog post', () => {
+  test('succeeds with valid data', async () => {
     const currentBlogPosts = await Blog.find({});
     const newBlogPost = {
       title: 'Dummy Blog',
@@ -96,7 +121,7 @@ describe('using remote database', () => {
     expect();
   });
 
-  test('no likes', async () => {
+  test('adds 0 likes as default', async () => {
     const newBlogPost = {
       title: 'No Likes Blog',
       author: 'John Doe',
@@ -115,7 +140,7 @@ describe('using remote database', () => {
     expect(latestBlogPost.likes).toEqual(0);
   });
 
-  test('no title or url', async () => {
+  test('fails with status code 400 if data invalid', async () => {
     const newBlogPost = {
       author: 'John Doe',
       __v: 0,
@@ -143,17 +168,45 @@ describe('using remote database', () => {
   });
 });
 
-describe('deletion of a blog post', () => {
-  test('delete one', async () => {
+describe('deleting a blog post', () => {
+  test('succeeds with status code 204 if id is valid', async () => {
     const { id } = await Blog.findOne();
 
     await api
       .delete(`/api/blogs/${id}`)
-      .expect(200);
+      .expect(204);
+  });
+  test('returns status code 404 if id no longer exists', async () => {
+    const { id } = await Blog.findOne();
+
+    await api
+      .delete(`/api/blogs/${id}`)
+      .expect(204);
 
     await api
       .delete(`/api/blogs/${id}`)
       .expect(404);
+  });
+});
+
+describe('updating a blog post', () => {
+  test('succeeds with status code 201 if id is valid', async () => {
+    const { id } = await Blog.findOne();
+    const update = {
+      title: 'Springfield News', author: 'Homer Simpson', url: 'https://en.wikipedia.org/wiki/The_Simpsons', likes: 99,
+    };
+    await api
+      .put(`/api/blogs/${id}`)
+      .send(update)
+      .expect(201);
+
+    const {
+      title, author, url, likes,
+    } = await Blog.findById(id);
+
+    expect({
+      title, author, url, likes,
+    }).toStrictEqual(update);
   });
 });
 
