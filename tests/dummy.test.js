@@ -80,6 +80,52 @@ describe('Blogs', () => {
     expect();
   });
 
+  test('no likes', async () => {
+    const newBlogPost = {
+      title: 'No Likes Blog',
+      author: 'John Doe',
+      url: 'https://nolikesblog.com/',
+      __v: 0,
+    };
+
+    const response = await api
+      .post('/api/blogs')
+      .send(newBlogPost)
+      .expect('Content-Type', /json/)
+      .expect(201);
+
+    const latestBlogPost = await Blog.findById(response.body.id);
+
+    expect(latestBlogPost.likes).toEqual(0);
+  });
+
+  test('no title or url', async () => {
+    const newBlogPost = {
+      author: 'John Doe',
+      __v: 0,
+    };
+
+    const noTitle = {
+      ...newBlogPost,
+      url: 'https://nolikesblog.com/',
+    };
+
+    const noUrl = {
+      ...newBlogPost,
+      title: 'Some Blog',
+    };
+
+    await api
+      .post('/api/blogs')
+      .send(noTitle)
+      .expect(400);
+
+    await api
+      .post('/api/blogs')
+      .send(noUrl)
+      .expect(400);
+  });
+
   beforeEach(async () => {
     await Blog.deleteMany({});
 

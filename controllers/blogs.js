@@ -14,7 +14,16 @@ blogsRouter.get('/', (request, response) => {
 });
 
 blogsRouter.post('/', (request, response) => {
-  const blog = new Blog(request.body);
+  const { title, url, likes } = request.body;
+  const data = { ...request.body };
+  data.likes = likes || 0;
+
+  if (!title || !url) {
+    response.status(400).json({ error: { message: 'malformed request' } });
+    return;
+  }
+
+  const blog = new Blog(data);
 
   blog
     .save()
