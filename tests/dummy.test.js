@@ -50,6 +50,36 @@ describe('Blogs', () => {
     expect(blog.id).toBeDefined();
   });
 
+  test('create blog post', async () => {
+    const currentBlogPosts = await Blog.find({});
+    const newBlogPost = {
+      title: 'Dummy Blog',
+      author: 'John Doe',
+      url: 'https://dummyblog.com/',
+      likes: 0,
+      __v: 0,
+    };
+
+    const response = await api
+      .post('/api/blogs')
+      .send(newBlogPost)
+      .expect('Content-Type', /json/)
+      .expect(201);
+
+    const updatedBlogPosts = await Blog.find({});
+    const latestBlogPost = await Blog.findById(response.body.id);
+    const {
+      title, author, url, likes, __v,
+    } = latestBlogPost;
+
+    expect(updatedBlogPosts.length).toEqual(currentBlogPosts.length + 1);
+    expect({
+      title, author, url, likes, __v,
+    }).toStrictEqual(newBlogPost);
+
+    expect();
+  });
+
   beforeEach(async () => {
     await Blog.deleteMany({});
 
