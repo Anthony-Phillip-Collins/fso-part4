@@ -5,8 +5,7 @@ blogsRouter.get('/', async (request, response, next) => {
   const blogs = await Blog.find({});
 
   if (blogs) {
-    response.status(200).json(blogs);
-    return;
+    return response.status(200).json(blogs);
   }
 
   next();
@@ -16,8 +15,7 @@ blogsRouter.get('/:id', async (request, response, next) => {
   const blog = await Blog.findById(request.params.id);
 
   if (blog) {
-    response.status(200).json(blog);
-    return;
+    return response.status(200).json(blog);
   }
 
   next();
@@ -29,16 +27,14 @@ blogsRouter.post('/', async (request, response, next) => {
   data.likes = likes || 0;
 
   if (!title || !url) {
-    response.status(400).json({ error: { message: 'malformed request' } });
-    return;
+    return response.status(400).json({ error: { message: 'malformed request' } });
   }
 
   const blog = new Blog(data);
   const saved = await blog.save();
 
   if (saved) {
-    response.status(201).json(saved);
-    return;
+    return response.status(201).json(saved);
   }
 
   next();
@@ -48,8 +44,7 @@ blogsRouter.delete('/:id', async (request, response, next) => {
   const blog = await Blog.findByIdAndDelete(request.params.id);
 
   if (blog) {
-    response.status(204).end();
-    return;
+    return response.status(204).end();
   }
 
   next();
@@ -67,8 +62,7 @@ blogsRouter.put('/:id', async (request, response, next) => {
   });
 
   if (blog) {
-    response.status(201).json(blog);
-    return;
+    return response.status(201).json(blog);
   }
 
   next();
