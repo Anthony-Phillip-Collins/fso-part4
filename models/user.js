@@ -1,8 +1,8 @@
-const mongoose = require('mongoose');
+const { Schema, model } = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
-const schemaIdToString = require('../utils/schemaIdToString');
+const schemaToJSON = require('../utils/schemaToJSON');
 
-const userSchema = new mongoose.Schema({
+const userSchema = new Schema({
   username: {
     type: String,
     required: true,
@@ -16,14 +16,18 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  blogs: [{ type: Schema.Types.ObjectId, ref: 'Blog' }],
 });
 
 userSchema.plugin(uniqueValidator, {
   message: '{VALUE} already exists. The {PATH} has to be {TYPE}.',
 });
 
-schemaIdToString(userSchema);
+schemaToJSON(userSchema, (returnedObject) => {
+  // eslint-disable-next-line no-param-reassign
+  delete returnedObject.hashedPassword;
+});
 
-const User = mongoose.model('User', userSchema);
+const User = model('User', userSchema);
 
 module.exports = User;

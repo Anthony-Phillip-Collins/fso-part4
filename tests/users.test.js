@@ -44,6 +44,16 @@ describe('reading users', () => {
     const users = await User.find({});
     expect(users.length).toStrictEqual(usersDummy.length);
   });
+
+  test('populate', async () => {
+    await api
+      .get('/api/users')
+      .expect('Content-Type', /json/)
+      .expect(200);
+
+    const users = await User.find({}).populate('blogs', { author: 1 });
+    expect(users.length).toStrictEqual(usersDummy.length);
+  });
 });
 
 describe('creating a user', () => {

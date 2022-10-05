@@ -1,15 +1,16 @@
-const mongoose = require('mongoose');
-const schemaIdToString = require('../utils/schemaIdToString');
+const { Schema, model } = require('mongoose');
+const schemaToJSON = require('../utils/schemaToJSON');
 
-const blogSchema = new mongoose.Schema({
+const blogSchema = new Schema({
   title: String,
   author: String,
   url: String,
   likes: Number,
+  users: [{ type: Schema.Types.ObjectId, ref: 'User' }],
 });
 
-schemaIdToString(blogSchema);
+schemaToJSON(blogSchema);
 
-const Blog = mongoose.model('Blog', blogSchema);
+const Blog = model('Blog', blogSchema);
 
 module.exports = Blog;
