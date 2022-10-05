@@ -1,7 +1,7 @@
 const supertest = require('supertest');
 const { default: mongoose } = require('mongoose');
 const listHelper = require('../utils/list_helper');
-const dummyBlogs = require('./dummyBlogs');
+const blogsDummy = require('./blogsDummy');
 const app = require('../app');
 const Blog = require('../models/blog');
 
@@ -13,7 +13,7 @@ beforeEach(async () => {
   const promises = [];
 
   // eslint-disable-next-line no-restricted-syntax
-  for (const blog of dummyBlogs) {
+  for (const blog of blogsDummy) {
     // eslint-disable-next-line no-await-in-loop
     promises.push(await new Blog(blog).save());
   }
@@ -30,22 +30,22 @@ describe('using local dummy blogs', () => {
   });
 
   test('total likes', () => {
-    const result = listHelper.totalLikes(dummyBlogs);
+    const result = listHelper.totalLikes(blogsDummy);
     expect(result).toBe(36);
   });
 
   test('favourite blog', () => {
-    const result = listHelper.favoriteBlog(dummyBlogs);
+    const result = listHelper.favoriteBlog(blogsDummy);
     expect(result).toStrictEqual({ title: 'Canonical string reduction', author: 'Edsger W. Dijkstra', likes: 12 });
   });
 
   test('most blogs', () => {
-    const result = listHelper.mostBlogs(dummyBlogs);
+    const result = listHelper.mostBlogs(blogsDummy);
     expect(result).toStrictEqual({ author: 'Robert C. Martin', blogs: 3 });
   });
 
   test('most likes', () => {
-    const result = listHelper.mostLikes(dummyBlogs);
+    const result = listHelper.mostLikes(blogsDummy);
     expect(result).toStrictEqual({ author: 'Edsger W. Dijkstra', likes: 17 });
   });
 });
@@ -58,7 +58,7 @@ describe('reading blog posts', () => {
       .expect(200);
 
     const blogs = await Blog.find({});
-    expect(blogs.length).toStrictEqual(dummyBlogs.length);
+    expect(blogs.length).toStrictEqual(blogsDummy.length);
   });
 
   test('blog has the property id', async () => {

@@ -6,11 +6,16 @@ const userSchema = new mongoose.Schema({
   username: {
     type: String,
     required: true,
-    minlength: [3, 'The name has to be at least 3 characters long!'],
+    minlength: [3, 'The username has to be at least 3 characters long!'],
     unique: true,
   },
-  name: { type: String, required: true },
-  hashedPassword: { type: String, required: true },
+  name: {
+    type: String,
+  },
+  hashedPassword: {
+    type: String,
+    required: true,
+  },
 });
 
 userSchema.plugin(uniqueValidator, {
