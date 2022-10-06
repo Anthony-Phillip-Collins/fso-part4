@@ -7,7 +7,9 @@ const loginRouter = require('./controllers/login');
 const blogsRouter = require('./controllers/blogs');
 const usersRouter = require('./controllers/users');
 const connectToDb = require('./utils/connectToDb');
-const { errorHandler, unknownEndpoint, requestLogger } = require('./utils/middleware');
+const {
+  errorHandler, unknownEndpoint, requestLogger, tokenExtractor,
+} = require('./utils/middleware');
 
 const init = async () => {
   await connectToDb();
@@ -16,6 +18,7 @@ const init = async () => {
   app.use(express.static('build'));
   app.use(express.json());
   app.use(requestLogger);
+  app.use(tokenExtractor);
 
   app.use('/api/login', loginRouter);
   app.use('/api/blogs', blogsRouter);

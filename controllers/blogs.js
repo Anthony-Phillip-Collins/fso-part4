@@ -3,15 +3,6 @@ const jwt = require('jsonwebtoken');
 const Blog = require('../models/blog');
 const User = require('../models/user');
 
-const getTokenFrom = (request) => {
-  const authorization = request.get('authorization');
-  const authenticationScheme = 'bearer ';
-  if (authorization && authorization.toLowerCase().startsWith(authenticationScheme)) {
-    return authorization.substring(authenticationScheme.length);
-  }
-  return null;
-};
-
 blogsRouter.get('/', async (request, response, next) => {
   const blogs = await Blog.find({}).populate('user', { username: 1, name: 1 });
   if (blogs) {
@@ -39,8 +30,7 @@ blogsRouter.post('/', async (request, response, next) => {
     return response.status(400).json({ error: { message: 'malformed request' } });
   }
 
-  const token = getTokenFrom(request);
-  const decodedToken = jwt.verify(token, process.env.SECRET);
+  const decodedToken = jwt.verify(request.token, process.env.SECRET);
   const user = await User.findById(decodedToken.id);
   const blog = new Blog({ ...data, user: user.id });
   const saved = await blog.save();
