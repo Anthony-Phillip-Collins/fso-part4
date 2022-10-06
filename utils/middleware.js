@@ -23,6 +23,10 @@ const errorHandler = (err, req, res, next) => {
       res.status(400).json({ error: err.errors[Object.keys(err.errors).pop()] });
       break;
 
+    case 'JsonWebTokenError':
+      res.status(401).json({ error: { message: 'token missing or invalid' } });
+      break;
+
     default:
       res.status(500).send('Something broke!');
   }

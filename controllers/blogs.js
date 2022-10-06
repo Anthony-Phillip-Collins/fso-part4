@@ -41,10 +41,6 @@ blogsRouter.post('/', async (request, response, next) => {
 
   const token = getTokenFrom(request);
   const decodedToken = jwt.verify(token, process.env.SECRET);
-  if (!decodedToken.id) {
-    return response.status(401).json({ error: 'token missing or invalid' });
-  }
-
   const user = await User.findById(decodedToken.id);
   const blog = new Blog({ ...data, user: user.id });
   const saved = await blog.save();
