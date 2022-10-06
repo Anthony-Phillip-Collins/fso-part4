@@ -1,29 +1,19 @@
 const blogsRouter = require('express').Router();
-const jwt = require('jsonwebtoken');
 const ErrorName = require('../enums/ErrorName');
 const Blog = require('../models/blog');
-const User = require('../models/user');
+const { userExtractor } = require('../utils/middleware');
 
-blogsRouter.get('/', async (request, response, next) => {
+blogsRouter.get('/', async (request, response) => {
   const blogs = await Blog.find({}).populate('user', { username: 1, name: 1 });
-  if (blogs) {
-    return response.status(200).json(blogs);
-  }
-
-  return next();
+  return response.status(200).json(blogs);
 });
 
-blogsRouter.get('/:id', async (request, response, next) => {
+blogsRouter.get('/:id', async (request, response) => {
   const blog = await Blog.findById(request.params.id);
-
-  if (blog) {
-    return response.status(200).json(blog);
-  }
-
-  return next();
+  return response.status(200).json(blog);
 });
 
-blogsRouter.post('/', async (request, response, next) => {
+blogsRouter.post('/', userExtractor, async (request, response) => {
   const { title, url, likes } = request.body;
   const data = { ...request.body, likes: likes || 0 };
 
@@ -31,29 +21,23 @@ blogsRouter.post('/', async (request, response, next) => {
     return response.status(400).json({ error: { message: 'malformed request' } });
   }
 
-  const decodedToken = jwt.verify(request.token, process.env.SECRET);
-  const user = await User.findById(decodedToken.id);
+  const { user } = request;
   const blog = new Blog({ ...data, user: user.id });
   const saved = await blog.save();
 
-  if (saved) {
-    const ids = user.blogs.map((id) => id.toString());
-    const exists = ids.find((id) => id === blog.id);
-    if (!exists) {
-      user.blogs = user.blogs.concat(blog.id);
-      await user.save();
-    }
-
-    return response.status(201).json(saved);
+  const ids = user.blogs.map((id) => id.toString());
+  const exists = ids.find((id) => id === saved.id);
+  if (!exists) {
+    user.blogs = user.blogs.concat(saved.id);
+    await user.save();
   }
 
-  return next();
+  return response.status(201).json(saved);
 });
 
-blogsRouter.delete('/:id', async (request, response, next) => {
-  const decodedToken = jwt.verify(request.token, process.env.SECRET);
+blogsRouter.delete('/:id', userExtractor, async (request, response, next) => {
+  const { user } = request;
   const blog = await Blog.findById(request.params.id);
-  const user = await User.findById(decodedToken.id);
 
   if (!blog) {
     return next({ name: ErrorName.NotFound });
@@ -67,22 +51,25 @@ blogsRouter.delete('/:id', async (request, response, next) => {
   return response.status(204).end();
 });
 
-blogsRouter.put('/:id', async (request, response, next) => {
+blogsRouter.put('/:id', userExtractor, async (request, response, next) => {
   const {
     author, title, url, likes,
   } = request.body;
 
-  const blog = await Blog.findByIdAndUpdate(request.params.id, {
+  const { user } = request;
+  const blog = await Blog.findById(request.params.id);
+
+  if (blog.user.toString() !== user.id.toString()) {
+    return next({ name: ErrorName.AccessDenied });
+  }
+
+  const updated = await Blog.findByIdAndUpdate(blog.id, {
     author, title, url, likes,
   }, {
     returnDocument: 'after',
   });
 
-  if (blog) {
-    return response.status(201).json(blog);
-  }
-
-  return next();
+  return response.status(201).json(updated);
 });
 
 module.exports = blogsRouter;

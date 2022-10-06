@@ -8,7 +8,7 @@ const blogsRouter = require('./controllers/blogs');
 const usersRouter = require('./controllers/users');
 const connectToDb = require('./utils/connectToDb');
 const {
-  errorHandler, unknownEndpoint, requestLogger, tokenExtractor,
+  errorHandler, unknownEndpoint, requestLogger, tokenExtractor, userExtractor,
 } = require('./utils/middleware');
 
 const init = async () => {

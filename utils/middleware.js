@@ -1,4 +1,6 @@
+const jwt = require('jsonwebtoken');
 const ErrorName = require('../enums/ErrorName');
+const User = require('../models/user');
 const { info } = require('./logger');
 
 const requestLogger = (request, response, next) => {
@@ -32,7 +34,7 @@ const errorHandler = (error, request, response, next) => {
       response.status(403).json({ error: { message: 'User doesn’t have permissions to perform this action.' } });
       break;
     default:
-      response.status(500).send('Something broke!');
+      response.status(500).send(error.message || 'Something broke!');
   }
 };
 
@@ -45,9 +47,19 @@ const tokenExtractor = (request, response, next) => {
   next();
 };
 
+const userExtractor = async (request, response, next) => {
+  const decodedToken = jwt.verify(request.token, process.env.SECRET);
+  request.user = await User.findById(decodedToken.id);
+  if (!request.user) {
+    next({ name: ErrorName.AccessDenied });
+  }
+  next();
+};
+
 module.exports = {
   requestLogger,
   unknownEndpoint,
   errorHandler,
   tokenExtractor,
+  userExtractor,
 };
