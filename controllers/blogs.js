@@ -1,6 +1,16 @@
 const blogsRouter = require('express').Router();
+const jwt = require('jsonwebtoken');
 const Blog = require('../models/blog');
 const User = require('../models/user');
+
+const getTokenFrom = (request) => {
+  const authorization = request.get('authorization');
+  const authenticationScheme = 'bearer ';
+  if (authorization && authorization.toLowerCase().startsWith(authenticationScheme)) {
+    return authorization.substring(authenticationScheme.length);
+  }
+  return null;
+};
 
 blogsRouter.get('/', async (request, response, next) => {
   const blogs = await Blog.find({}).populate('user', { username: 1, name: 1 });
@@ -23,15 +33,19 @@ blogsRouter.get('/:id', async (request, response, next) => {
 
 blogsRouter.post('/', async (request, response, next) => {
   const { title, url, likes } = request.body;
-  const data = { ...request.body };
+  const data = { ...request.body, likes: likes || 0 };
 
-  data.likes = likes || 0;
-
-  if (!title || !url) {
+  if (!(title && url)) {
     return response.status(400).json({ error: { message: 'malformed request' } });
   }
 
-  const user = await User.findOne();
+  const token = getTokenFrom(request);
+  const decodedToken = jwt.verify(token, process.env.SECRET);
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: 'token missing or invalid' });
+  }
+
+  const user = await User.findById(decodedToken.id);
   const blog = new Blog({ ...data, user: user.id });
   const saved = await blog.save();
 

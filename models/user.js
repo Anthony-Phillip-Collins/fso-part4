@@ -28,7 +28,7 @@ userSchema.plugin(uniqueValidator, {
 
 schemaToJSON(userSchema, (returnedObject) => {
   // eslint-disable-next-line no-param-reassign
-  delete returnedObject.hashedPassword;
+  // delete returnedObject.hashedPassword;
 });
 
 const User = model('User', userSchema);

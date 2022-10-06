@@ -3,6 +3,7 @@ require('express-async-errors');
 
 const app = express();
 const cors = require('cors');
+const loginRouter = require('./controllers/login');
 const blogsRouter = require('./controllers/blogs');
 const usersRouter = require('./controllers/users');
 const connectToDb = require('./utils/connectToDb');
@@ -16,6 +17,7 @@ const init = async () => {
   app.use(express.json());
   app.use(requestLogger);
 
+  app.use('/api/login', loginRouter);
   app.use('/api/blogs', blogsRouter);
   app.use('/api/users', usersRouter);
 
