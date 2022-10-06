@@ -6,7 +6,10 @@ const blogSchema = new Schema({
   author: String,
   url: String,
   likes: Number,
-  users: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+  },
 });
 
 schemaToJSON(blogSchema);

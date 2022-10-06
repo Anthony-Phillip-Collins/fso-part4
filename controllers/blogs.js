@@ -1,14 +1,14 @@
 const blogsRouter = require('express').Router();
 const Blog = require('../models/blog');
+const User = require('../models/user');
 
 blogsRouter.get('/', async (request, response, next) => {
-  const blogs = await Blog.find({});
-
+  const blogs = await Blog.find({}).populate('user', { username: 1, name: 1 });
   if (blogs) {
     return response.status(200).json(blogs);
   }
 
-  next();
+  return next();
 });
 
 blogsRouter.get('/:id', async (request, response, next) => {
@@ -18,26 +18,35 @@ blogsRouter.get('/:id', async (request, response, next) => {
     return response.status(200).json(blog);
   }
 
-  next();
+  return next();
 });
 
 blogsRouter.post('/', async (request, response, next) => {
   const { title, url, likes } = request.body;
   const data = { ...request.body };
+
   data.likes = likes || 0;
 
   if (!title || !url) {
     return response.status(400).json({ error: { message: 'malformed request' } });
   }
 
-  const blog = new Blog(data);
+  const user = await User.findOne();
+  const blog = new Blog({ ...data, user: user.id });
   const saved = await blog.save();
 
   if (saved) {
+    const ids = user.blogs.map((id) => id.toString());
+    const exists = ids.find((id) => id === blog.id);
+    if (!exists) {
+      user.blogs = user.blogs.concat(blog.id);
+      await user.save();
+    }
+
     return response.status(201).json(saved);
   }
 
-  next();
+  return next();
 });
 
 blogsRouter.delete('/:id', async (request, response, next) => {
@@ -47,7 +56,7 @@ blogsRouter.delete('/:id', async (request, response, next) => {
     return response.status(204).end();
   }
 
-  next();
+  return next();
 });
 
 blogsRouter.put('/:id', async (request, response, next) => {
@@ -65,7 +74,7 @@ blogsRouter.put('/:id', async (request, response, next) => {
     return response.status(201).json(blog);
   }
 
-  next();
+  return next();
 });
 
 module.exports = blogsRouter;
