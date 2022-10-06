@@ -1,3 +1,4 @@
+const ErrorName = require('../enums/ErrorName');
 const { info } = require('./logger');
 
 const requestLogger = (request, response, next) => {
@@ -13,22 +14,25 @@ const unknownEndpoint = (request, response) => {
 };
 
 // eslint-disable-next-line no-unused-vars
-const errorHandler = (err, req, res, next) => {
-  switch (err.name) {
-    case 'CastError':
-      res.status(400).json({ error: { message: 'Malformatted id!' } });
+const errorHandler = (error, request, response, next) => {
+  switch (error.name) {
+    case ErrorName.NotFound:
+      response.status(404).json({ error: { message: 'The requested resource doesn’t exists!' } });
       break;
-
-    case 'ValidationError':
-      res.status(400).json({ error: err.errors[Object.keys(err.errors).pop()] });
+    case ErrorName.CastError:
+      response.status(400).json({ error: { message: 'Malformatted id!' } });
       break;
-
-    case 'JsonWebTokenError':
-      res.status(401).json({ error: { message: 'token missing or invalid' } });
+    case ErrorName.ValidationError:
+      response.status(400).json({ error: error.errors[Object.keys(error.errors).pop()] });
       break;
-
+    case ErrorName.JsonWebTokenError:
+      response.status(401).json({ error: { message: 'token missing or invalid' } });
+      break;
+    case ErrorName.AccessDenied:
+      response.status(403).json({ error: { message: 'User doesn’t have permissions to perform this action.' } });
+      break;
     default:
-      res.status(500).send('Something broke!');
+      response.status(500).send('Something broke!');
   }
 };
 

@@ -1,5 +1,6 @@
 const blogsRouter = require('express').Router();
 const jwt = require('jsonwebtoken');
+const ErrorName = require('../enums/ErrorName');
 const Blog = require('../models/blog');
 const User = require('../models/user');
 
@@ -50,13 +51,20 @@ blogsRouter.post('/', async (request, response, next) => {
 });
 
 blogsRouter.delete('/:id', async (request, response, next) => {
-  const blog = await Blog.findByIdAndDelete(request.params.id);
+  const decodedToken = jwt.verify(request.token, process.env.SECRET);
+  const blog = await Blog.findById(request.params.id);
+  const user = await User.findById(decodedToken.id);
 
-  if (blog) {
-    return response.status(204).end();
+  if (!blog) {
+    return next({ name: ErrorName.NotFound });
   }
 
-  return next();
+  if (blog.user.toString() !== user.id.toString()) {
+    return next({ name: ErrorName.AccessDenied });
+  }
+
+  await blog.delete();
+  return response.status(204).end();
 });
 
 blogsRouter.put('/:id', async (request, response, next) => {
