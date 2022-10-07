@@ -27,6 +27,7 @@ blogsRouter.post('/', userExtractor, async (request, response) => {
 
   const ids = user.blogs.map((id) => id.toString());
   const exists = ids.find((id) => id === saved.id);
+
   if (!exists) {
     user.blogs = user.blogs.concat(saved.id);
     await user.save();
@@ -44,7 +45,7 @@ blogsRouter.delete('/:id', userExtractor, async (request, response, next) => {
   }
 
   if (blog.user.toString() !== user.id.toString()) {
-    return next({ name: ErrorName.AccessDenied });
+    return next({ name: ErrorName.Unauthorized });
   }
 
   await blog.delete();
@@ -60,7 +61,7 @@ blogsRouter.put('/:id', userExtractor, async (request, response, next) => {
   const blog = await Blog.findById(request.params.id);
 
   if (blog.user.toString() !== user.id.toString()) {
-    return next({ name: ErrorName.AccessDenied });
+    return next({ name: ErrorName.Unauthorized });
   }
 
   const updated = await Blog.findByIdAndUpdate(blog.id, {

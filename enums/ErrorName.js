@@ -3,7 +3,7 @@ const ErrorName = Object.freeze({
   CastError: 'CastError',
   ValidationError: 'ValidationError',
   JsonWebTokenError: 'JsonWebTokenError',
-  AccessDenied: 'AccessDenied',
+  Unauthorized: 'Unauthorized',
 });
 
 module.exports = ErrorName;

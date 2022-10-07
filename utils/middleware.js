@@ -30,8 +30,8 @@ const errorHandler = (error, request, response, next) => {
     case ErrorName.JsonWebTokenError:
       response.status(401).json({ error: { message: 'token missing or invalid' } });
       break;
-    case ErrorName.AccessDenied:
-      response.status(403).json({ error: { message: 'User doesn’t have permissions to perform this action.' } });
+    case ErrorName.Unauthorized:
+      response.status(401).json({ error: { message: 'User doesn’t have permissions to perform this action.' } });
       break;
     default:
       response.status(500).send(error.message || 'Something broke!');
@@ -51,7 +51,7 @@ const userExtractor = async (request, response, next) => {
   const decodedToken = jwt.verify(request.token, process.env.SECRET);
   request.user = await User.findById(decodedToken.id);
   if (!request.user) {
-    next({ name: ErrorName.AccessDenied });
+    next({ name: ErrorName.Unauthorized });
   }
   next();
 };

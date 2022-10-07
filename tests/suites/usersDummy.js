@@ -1,10 +1,10 @@
 module.exports = [{
-  username: 'Admin',
-  name: 'Anthony Collins',
+  username: 'User1',
+  name: 'First User',
   password: 'letmein',
 },
 {
-  username: 'Admin 2',
-  name: 'Anthony Collins',
+  username: 'User2',
+  name: 'Second User',
   password: 'letmein',
 }];
