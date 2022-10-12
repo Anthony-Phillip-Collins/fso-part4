@@ -33,7 +33,8 @@ blogsRouter.post('/', userExtractor, async (request, response) => {
     await user.save();
   }
 
-  return response.status(201).json(saved);
+  const populated = await saved.populate('user', { username: 1, name: 1 });
+  return response.status(201).json(populated);
 });
 
 blogsRouter.delete('/:id', userExtractor, async (request, response, next) => {
@@ -59,18 +60,33 @@ blogsRouter.put('/:id', userExtractor, async (request, response, next) => {
 
   const { user } = request;
   const blog = await Blog.findById(request.params.id);
+  const a = { author, title, url };
+  const b = { author: blog.author, title: blog.title, url: blog.url };
+  const onlyUpdatingLikes = JSON.stringify(a) === JSON.stringify(b);
+  const ownedByUser = blog.user.toString() === user.id.toString();
+  let updated;
 
-  if (blog.user.toString() !== user.id.toString()) {
-    return next({ name: ErrorName.Unauthorized });
+  const update = async (props) => {
+    updated = await Blog.findByIdAndUpdate(blog.id, props, {
+      returnDocument: 'after',
+    }).populate('user', { username: 1, name: 1 });
+
+    response.status(201).json(updated);
+  };
+
+  if (ownedByUser) {
+    return update({
+      author, title, url, likes,
+    });
   }
 
-  const updated = await Blog.findByIdAndUpdate(blog.id, {
-    author, title, url, likes,
-  }, {
-    returnDocument: 'after',
-  });
+  if (onlyUpdatingLikes) {
+    return update({
+      likes,
+    });
+  }
 
-  return response.status(201).json(updated);
+  return next({ name: ErrorName.Unauthorized });
 });
 
 module.exports = blogsRouter;
