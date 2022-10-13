@@ -7,8 +7,10 @@ const loginRouter = require('./controllers/login');
 const blogsRouter = require('./controllers/blogs');
 const usersRouter = require('./controllers/users');
 const connectToDb = require('./utils/connectToDb');
+const testingRouter = require('./controllers/testing');
+
 const {
-  errorHandler, unknownEndpoint, requestLogger, tokenExtractor, userExtractor,
+  errorHandler, unknownEndpoint, requestLogger, tokenExtractor,
 } = require('./utils/middleware');
 
 const init = async () => {
@@ -23,6 +25,7 @@ const init = async () => {
   app.use('/api/login', loginRouter);
   app.use('/api/blogs', blogsRouter);
   app.use('/api/users', usersRouter);
+  app.use('/api/test', testingRouter);
 
   app.use(unknownEndpoint);
   app.use(errorHandler);

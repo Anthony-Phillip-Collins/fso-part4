@@ -1,13 +1,13 @@
 const jwt = require('jsonwebtoken');
 const ErrorName = require('../enums/ErrorName');
 const User = require('../models/user');
-const { info } = require('./logger');
+const logger = require('./logger');
 
 const requestLogger = (request, response, next) => {
-  info('Method:', request.method);
-  info('Path:  ', request.path);
-  info('Body:  ', request.body);
-  info('---');
+  logger.info('Method:', request.method);
+  logger.info('Path:  ', request.path);
+  logger.info('Body:  ', request.body);
+  logger.info('---');
   next();
 };
 
@@ -32,6 +32,9 @@ const errorHandler = (error, request, response, next) => {
       break;
     case ErrorName.Unauthorized:
       response.status(401).json({ error: { message: 'User doesn’t have permissions to perform this action.' } });
+      break;
+    case ErrorName.NotInTestMode:
+      response.status(401).json({ error: { message: 'Access denied! App is not running in test-mode!' } });
       break;
     default:
       response.status(500).send(error.message || 'Something broke!');

@@ -4,6 +4,7 @@ const ErrorName = Object.freeze({
   ValidationError: 'ValidationError',
   JsonWebTokenError: 'JsonWebTokenError',
   Unauthorized: 'Unauthorized',
+  NotInTestMode: 'NotInTestMode',
 });
 
 module.exports = ErrorName;
